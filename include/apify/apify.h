@@ -248,7 +248,9 @@ public:
 /*────────────────────────────────────────────────────────────────────────────*/
 
 namespace nodepp { namespace apify {
-     template< class T > apify_host_t<T> add() { return apify_host_t<T>(); }
+     template< class T > apify_host_t<T> add()    { return apify_host_t<T>(); }
+     template< class T > apify_t<T> add( T& cli ) { return apify_t<T>( cli ); }
+     template< class T > apify_t<T> get( T& cli ) { return apify_t<T>( cli ); }
 }}
 
 /*────────────────────────────────────────────────────────────────────────────*/
