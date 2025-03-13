@@ -20,12 +20,12 @@ void onMain() {
     auto app = apify::add<ws_t>();
     auto srv = ws::server();
 
-    app.ADD("/:id",[=]( apify_t<ws_t> cli ){
+    app.on("/:id",[=]( apify_t<ws_t> cli ){
         console::log( cli.params["id"] );
         cli.done();
     });
 
-    app.ADD([=]( apify_t<ws_t> cli ){
+    app.on([=]( apify_t<ws_t> cli ){
         console::log( cli.message );
         cli.done();
     });
