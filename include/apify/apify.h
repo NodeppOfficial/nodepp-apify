@@ -10,8 +10,6 @@
 
 /*────────────────────────────────────────────────────────────────────────────*/
 
-#include <nodepp/nodepp.h>
-
 #include <nodepp/optional.h>
 #include <nodepp/encoder.h>
 #include <nodepp/path.h>
@@ -30,9 +28,9 @@ namespace nodepp { template< class T > class apify_t { public:
 
     /*.......................................................................*/
 
-    int respond( string_t method, string_t path, string_t data ) const noexcept { done(); return send( method, path, data ); }
-    int respond( string_t path, string_t data )                  const noexcept { return respond( nullptr, path, data ); }
-    int respond( string_t data )                                 const noexcept { return respond( nullptr,  "/", data ); }
+    int emit( string_t method, string_t path, string_t data ) const noexcept { done(); return send( method, path, data ); }
+    int emit( string_t path, string_t data )                  const noexcept { return emit( nullptr, path, data ); }
+    int emit( string_t data )                                 const noexcept { return emit( nullptr,  "/", data ); }
 
     /*.......................................................................*/
 
@@ -155,7 +153,7 @@ public:
 
     /*.........................................................................*/
 
-    const apify_host_t& ADD( string_t _method, string_t _path, CALBK cb ) const noexcept {
+    const apify_host_t& on( string_t _method, string_t _path, CALBK cb ) const noexcept {
          apify_item_t item; memset( &item, sizeof(item), 0 );
          item.method   = _method;
          item.path     = _path;
@@ -163,7 +161,7 @@ public:
          obj->list.push( item ); return (*this);
     }
 
-    const apify_host_t& ADD( string_t _path, CALBK cb ) const noexcept {
+    const apify_host_t& on( string_t _path, CALBK cb ) const noexcept {
          apify_item_t item; memset( &item, sizeof(item), 0 );
          item.method   = nullptr;
          item.path     = _path;
@@ -171,7 +169,7 @@ public:
          obj->list.push( item ); return (*this);
     }
 
-    const apify_host_t& ADD( CALBK cb ) const noexcept {
+    const apify_host_t& on( CALBK cb ) const noexcept {
          apify_item_t item; memset( &item, sizeof(item), 0 );
          item.method   = nullptr;
          item.path     = "*";
@@ -181,7 +179,7 @@ public:
 
     /*.........................................................................*/
 
-    const apify_host_t& USE( string_t _path, apify_host_t cb ) const noexcept {
+    const apify_host_t& add( string_t _path, apify_host_t cb ) const noexcept {
          apify_item_t item; memset( &item, sizeof(item), 0 );
          cb.set_path( normalize( obj->path, _path ) );
          item.method     = nullptr;
@@ -190,7 +188,7 @@ public:
          obj->list.push( item ); return (*this);
     }
 
-    const apify_host_t& USE( apify_host_t cb ) const noexcept {
+    const apify_host_t& add( apify_host_t cb ) const noexcept {
          apify_item_t item; memset( &item, sizeof(item), 0 );
          cb.set_path( normalize( obj->path, nullptr ) );
          item.method     = nullptr;
@@ -200,8 +198,8 @@ public:
     }
 
     /*.........................................................................*/
-
-    const apify_host_t& USE( string_t _path, MIDDL cb ) const noexcept {
+/*
+    const apify_host_t& on( string_t _path, MIDDL cb ) const noexcept {
          apify_item_t item; memset( &item, sizeof(item), 0 );
          item.middleware = optional_t<MIDDL>(cb);
          item.method     = nullptr;
@@ -209,14 +207,14 @@ public:
          obj->list.push( item ); return (*this);
     }
 
-    const apify_host_t& USE( MIDDL cb ) const noexcept {
+    const apify_host_t& on( MIDDL cb ) const noexcept {
          apify_item_t item; memset( &item, sizeof(item), 0 );
          item.middleware = optional_t<MIDDL>(cb);
          item.method     = nullptr;
          item.path       = "*";
          obj->list.push( item ); return (*this);
     }
-
+*/
     /*.........................................................................*/
 
     void next( T cli, string_t message ) const noexcept {
