@@ -198,8 +198,8 @@ public:
     }
 
     /*.........................................................................*/
-/*
-    const apify_host_t& on( string_t _path, MIDDL cb ) const noexcept {
+
+    const apify_host_t& add( string_t _path, MIDDL cb ) const noexcept {
          apify_item_t item; memset( &item, sizeof(item), 0 );
          item.middleware = optional_t<MIDDL>(cb);
          item.method     = nullptr;
@@ -207,14 +207,14 @@ public:
          obj->list.push( item ); return (*this);
     }
 
-    const apify_host_t& on( MIDDL cb ) const noexcept {
+    const apify_host_t& add( MIDDL cb ) const noexcept {
          apify_item_t item; memset( &item, sizeof(item), 0 );
          item.middleware = optional_t<MIDDL>(cb);
          item.method     = nullptr;
          item.path       = "*";
          obj->list.push( item ); return (*this);
     }
-*/
+
     /*.........................................................................*/
 
     void next( T cli, string_t message ) const noexcept {
