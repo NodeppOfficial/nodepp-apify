@@ -23,16 +23,20 @@
 
 namespace nodepp { template< class T > class apify_t { public:
 
-    struct NODE {
-        bool state=0; T ctx;
-    };  ptr_t<NODE> obj;
+    /*.......................................................................*/
 
+    struct NODE { bool state=0; T ctx; }; ptr_t<NODE> obj;
     string_t message; string_t method; string_t path; query_t params;
 
-    int respond( string_t path, string_t data ) const noexcept { return respond( nullptr, path, data ); }
-    int respond( string_t data )                const noexcept { return respond( nullptr,  "/", data ); }
+    /*.......................................................................*/
 
-    int respond( string_t method, string_t path, string_t data ) const noexcept {
+    int respond( string_t method, string_t path, string_t data ) const noexcept { done(); return send( method, path, data ); }
+    int respond( string_t path, string_t data )                  const noexcept { return respond( nullptr, path, data ); }
+    int respond( string_t data )                                 const noexcept { return respond( nullptr,  "/", data ); }
+
+    /*.......................................................................*/
+
+    int send( string_t method, string_t path, string_t data ) const noexcept {
         string_t raw = regex::format( "${0}\n${1}\n${2}", method, path, data );
         string_t key = encoder::key::generate( "01234567899ABCDEF", 4 );
         uint     idx = 0;
@@ -42,15 +46,23 @@ namespace nodepp { template< class T > class apify_t { public:
         return obj->ctx.write( regex::format( "${0}\n${1}", key, raw ) );
     }
 
+    /*.......................................................................*/
+
     bool is_available()  const noexcept { return obj->ctx.is_available(); }
     bool is_closed()     const noexcept { return obj->ctx.is_closed(); }
     bool is_done()       const noexcept { return obj->state == 1; }
 
+    /*.......................................................................*/
+
     void close()         const noexcept { obj->ctx.close(); }
+
+    /*.......................................................................*/
 
     T&   get_fd()        const noexcept { return obj->ctx; }
     void set_fd( T& fd ) const noexcept { obj->ctx  =fd; }
     void done()          const noexcept { obj->state= 1; }
+
+    /*.......................................................................*/
 
     apify_t( T& fd ) : obj( new NODE() ) { set_fd(fd); }
     apify_t()        : obj( new NODE() ) {}
@@ -169,7 +181,7 @@ public:
 
     /*.........................................................................*/
 
-    const apify_host_t& USE( string_t _path, apify_item_t cb ) const noexcept {
+    const apify_host_t& USE( string_t _path, apify_host_t cb ) const noexcept {
          apify_item_t item; memset( &item, sizeof(item), 0 );
          cb.set_path( normalize( obj->path, _path ) );
          item.method     = nullptr;
@@ -178,7 +190,7 @@ public:
          obj->list.push( item ); return (*this);
     }
 
-    const apify_host_t& USE( apify_item_t cb ) const noexcept {
+    const apify_host_t& USE( apify_host_t cb ) const noexcept {
          apify_item_t item; memset( &item, sizeof(item), 0 );
          cb.set_path( normalize( obj->path, nullptr ) );
          item.method     = nullptr;
@@ -228,8 +240,7 @@ public:
              app.path = message.splice( 0, idx+1 ); break;
          }   app.path.pop();
 
-         app.message    = message; run( nullptr, app );
-         app.obj->state = 0;
+         app.message = message; run( nullptr, app );
     }
 
     /*.........................................................................*/
