@@ -154,7 +154,7 @@ public:
     /*.........................................................................*/
 
     const apify_host_t& on( string_t _method, string_t _path, CALBK cb ) const noexcept {
-         apify_item_t item; memset( &item, sizeof(item), 0 );
+         apify_item_t item; memset( (void*) &item, 0, sizeof(item) );
          item.method   = _method;
          item.path     = _path;
          item.callback = cb;
@@ -162,7 +162,7 @@ public:
     }
 
     const apify_host_t& on( string_t _path, CALBK cb ) const noexcept {
-         apify_item_t item; memset( &item, sizeof(item), 0 );
+         apify_item_t item; memset( (void*) &item, 0, sizeof(item) );
          item.method   = nullptr;
          item.path     = _path;
          item.callback = cb;
@@ -170,7 +170,7 @@ public:
     }
 
     const apify_host_t& on( CALBK cb ) const noexcept {
-         apify_item_t item; memset( &item, sizeof(item), 0 );
+         apify_item_t item; memset( (void*) &item, 0, sizeof(item) );
          item.method   = nullptr;
          item.path     = "*";
          item.callback = cb;
@@ -180,7 +180,7 @@ public:
     /*.........................................................................*/
 
     const apify_host_t& add( string_t _path, apify_host_t cb ) const noexcept {
-         apify_item_t item; memset( &item, sizeof(item), 0 );
+         apify_item_t item; memset( (void*) &item, 0, sizeof(item) );
          cb.set_path( normalize( obj->path, _path ) );
          item.method     = nullptr;
          item.path       = "*";
@@ -189,7 +189,7 @@ public:
     }
 
     const apify_host_t& add( apify_host_t cb ) const noexcept {
-         apify_item_t item; memset( &item, sizeof(item), 0 );
+         apify_item_t item; memset( (void*) &item, 0, sizeof(item) );
          cb.set_path( normalize( obj->path, nullptr ) );
          item.method     = nullptr;
          item.path       = "*";
@@ -200,7 +200,7 @@ public:
     /*.........................................................................*/
 
     const apify_host_t& add( string_t _path, MIDDL cb ) const noexcept {
-         apify_item_t item; memset( &item, sizeof(item), 0 );
+         apify_item_t item; memset( (void*) &item, 0, sizeof(item) );
          item.middleware = optional_t<MIDDL>(cb);
          item.method     = nullptr;
          item.path       = _path;
@@ -208,7 +208,7 @@ public:
     }
 
     const apify_host_t& add( MIDDL cb ) const noexcept {
-         apify_item_t item; memset( &item, sizeof(item), 0 );
+         apify_item_t item; memset( (void*) &item, 0, sizeof(item) );
          item.middleware = optional_t<MIDDL>(cb);
          item.method     = nullptr;
          item.path       = "*";
