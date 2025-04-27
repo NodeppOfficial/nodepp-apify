@@ -111,9 +111,7 @@ protected:
                 cli.params[_path[1][x].slice(1)] = url::normalize( _path[0][x] ); }
           elif( _path[1][x].empty()        ){ continue;     }
           elif( _path[1][x] == "*"         ){ continue;     }
-          elif( _path[1][x] == nullptr     ){ continue;     }
-          elif( _path[1][x] != _path[0][x] ){ return false; }
-          }
+          elif( _path[1][x] != _path[0][x] ){ return false; }}
 
           return true;
      }
@@ -125,21 +123,21 @@ protected:
           function_t<void> next = [&](){ n = n->next; };
 
           while( n!=nullptr && !cli.is_done() ){
-               if( !cli.is_available() || cli.is_closed() ){ break; }
-               if(( n->data.path == nullptr && regex::test( cli.path, "^"+_base ))
-               || ( n->data.path == nullptr && obj->path == nullptr )
-               || ( path_match( cli, _base, n->data.path )) ){
-               if ( n->data.method==nullptr || n->data.method==cli.method ){
-                    execute( _base, n->data, cli, next );
-               } else { next(); }
-               } else { next(); }
+             if( !cli.is_available() || cli.is_closed() ){ break; }
+             if(( n->data.path == "*" && regex::test( cli.path, "^"+_base ))
+             || ( n->data.path == "*" && obj->path.empty() )
+             || ( path_match( cli, _base, n->data.path )) ){
+             if ( n->data.method==nullptr || n->data.method==cli.method ){
+                  execute( _base, n->data, cli, next );
+             } else { next(); }
+             } else { next(); }
           }
 
      }
 
      string_t normalize( string_t base, string_t path ) const noexcept {
-          return base.empty() ? ("/"+path) : path.empty() ?
-                                ("/"+base) : path::join( base, path );
+     return base.empty() ? ("/"+path) : path.empty() ?
+                           ("/"+base) : path::join( base, path );
      }
 
 public:
@@ -154,33 +152,25 @@ public:
     /*.........................................................................*/
 
     const apify_host_t& on( string_t _method, string_t _path, CALBK cb ) const noexcept {
-         apify_item_t item; memset( (void*) &item, 0, sizeof(item) );
+         apify_item_t item; // memset( (void*) &item, 0, sizeof(item) );
+         item.path     = _path.empty() ? "*" : _path;
          item.method   = _method;
-         item.path     = _path;
          item.callback = cb;
          obj->list.push( item ); return (*this);
     }
 
     const apify_host_t& on( string_t _path, CALBK cb ) const noexcept {
-         apify_item_t item; memset( (void*) &item, 0, sizeof(item) );
-         item.method   = nullptr;
-         item.path     = _path;
-         item.callback = cb;
-         obj->list.push( item ); return (*this);
+          return on( nullptr, _path, cb );
     }
 
     const apify_host_t& on( CALBK cb ) const noexcept {
-         apify_item_t item; memset( (void*) &item, 0, sizeof(item) );
-         item.method   = nullptr;
-         item.path     = "*";
-         item.callback = cb;
-         obj->list.push( item ); return (*this);
+          return on( nullptr, nullptr, cb );
     }
 
     /*.........................................................................*/
 
     const apify_host_t& add( string_t _path, apify_host_t cb ) const noexcept {
-         apify_item_t item; memset( (void*) &item, 0, sizeof(item) );
+         apify_item_t item; // memset( (void*) &item, 0, sizeof(item) );
          cb.set_path( normalize( obj->path, _path ) );
          item.method     = nullptr;
          item.path       = "*";
@@ -189,30 +179,21 @@ public:
     }
 
     const apify_host_t& add( apify_host_t cb ) const noexcept {
-         apify_item_t item; memset( (void*) &item, 0, sizeof(item) );
-         cb.set_path( normalize( obj->path, nullptr ) );
-         item.method     = nullptr;
-         item.path       = "*";
-         item.router     = optional_t<MIMES>(cb);
-         obj->list.push( item ); return (*this);
+          return add( nullptr, cb );
     }
 
     /*.........................................................................*/
 
     const apify_host_t& add( string_t _path, MIDDL cb ) const noexcept {
-         apify_item_t item; memset( (void*) &item, 0, sizeof(item) );
+         apify_item_t item; // memset( (void*) &item, 0, sizeof(item) );
+         item.path       = _path.empty() ? "*" : _path;
          item.middleware = optional_t<MIDDL>(cb);
          item.method     = nullptr;
-         item.path       = _path;
          obj->list.push( item ); return (*this);
     }
 
     const apify_host_t& add( MIDDL cb ) const noexcept {
-         apify_item_t item; memset( (void*) &item, 0, sizeof(item) );
-         item.middleware = optional_t<MIDDL>(cb);
-         item.method     = nullptr;
-         item.path       = "*";
-         obj->list.push( item ); return (*this);
+          return add( nullptr, cb );
     }
 
     /*.........................................................................*/
