@@ -160,8 +160,9 @@ protected:
     /*.......................................................................*/
 
     string_t normalize( string_t base, string_t path ) const noexcept {
-    return base.empty() ? ("/"+path) : path.empty() ?
-                          ("/"+base) : path::join( base, path );
+    auto new_path = base.empty() ? ("/"+path) : path.empty() ?
+                                   ("/"+base) : path::join( base, path );
+    return url::normalize( new_path );
     }
 
 public:
