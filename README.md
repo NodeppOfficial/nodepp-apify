@@ -1,5 +1,5 @@
 # NODEPP-APIFY
-To develop a high-performance, real-time API in C++ leveraging the [NodePP](https://github.com/NodeppOfficial/nodepp) library. This API will offer a development experience similar to Socket.IO but within the C++ ecosystem, emphasizing an asynchronous, event-driven architecture inspired by asyncio.
+To develop a high-performance, real-time API in C++ leveraging the [NodePP](https://github.com/NodeppOfficial/nodepp) library. This API will offer a development experience similar to Socket.IO but within the C++ ecosystem.
 
 # Features
 - **Real-time Bidirectional Communication:** Enable persistent, low-latency communication between clients and the server, allowing for instant data exchange.
