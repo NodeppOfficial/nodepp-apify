@@ -35,11 +35,10 @@ namespace nodepp { template< class T > class apify_t { public:
     /*.......................................................................*/
 
     string_t format( string_t method, string_t path, string_t data ) const noexcept {
-        if( path.empty() ){ path = "/"; }
-        return regex::format( "${0}\n${1}\n${2}",
-            encoder::base64::atob(method),
-            encoder::base64::atob(path),
-            encoder::base64::atob(data)
+        if( path.empty() ){ path = "/"; } return string::format( "%s.%s.%s.",
+            encoder::base64::atob(method).get(),
+            encoder::base64::atob(path)  .get(),
+            encoder::base64::atob(data)  .get()
         );
     }
 
@@ -103,11 +102,10 @@ protected:
     /*.......................................................................*/
 
     string_t format( string_t method, string_t path, string_t data ) const noexcept {
-        if( path.empty() ){ path = "/"; }
-        return regex::format( "${0}\n${1}\n${2}",
-            encoder::base64::atob(method),
-            encoder::base64::atob(path),
-            encoder::base64::atob(data)
+        if( path.empty() ){ path = "/"; } return string::format( "%s.%s.%s.",
+            encoder::base64::atob(method).get(),
+            encoder::base64::atob(path)  .get(),
+            encoder::base64::atob(data)  .get()
         );
     }
 
@@ -227,23 +225,22 @@ public:
     /*.........................................................................*/
 
     void next( T cli, string_t message ) const noexcept {
-        APIFY app( cli ); string_t key; uint idx;
+        APIFY app( cli ); array_t<string_t> raw; ulong offset=0;
 
-        idx=0; while( idx<message.size() ){
-            if( message[idx]!='\n' ){ ++idx; continue; }
-            app.method = message.splice(0,idx+1); break;
-        }   app.method.pop();
+        for( auto x: regex::search_all( message, "." ) ){
+            raw.push( message.slice( offset, x[0] ) );
+            offset = x[1]; 
+        }
 
-        idx=0; while( idx<message.size() ){
-            if( message[idx]!='\n' ){ ++idx; continue; }
-            app.path = message.splice(0,idx+1); break;
-        }   app.path.pop();
-
-        app.method  = encoder::base64::btoa(app.method);
-        app.path    = encoder::base64::btoa(app.path);
-        app.message = encoder::base64::btoa(message);
-
-        run( nullptr, app );
+        while( !raw.empty() ){
+            auto data = raw.splice( 0, 3 );
+        if( data.size() != 3 ){ continue; }
+            app.method = encoder::base64::btoa(data[0]);
+            app.path   = encoder::base64::btoa(data[1]);
+            app.message= encoder::base64::btoa(data[2]);
+            run( nullptr, app );
+        }
+        
     }
 
     /*.........................................................................*/
