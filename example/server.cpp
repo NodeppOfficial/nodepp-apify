@@ -9,8 +9,13 @@ void onMain() {
     auto srv = ws::server();
 
     app.on("METHOD","/PATH",[=]( apify_t<ws_t> cli ){
-        console::log( cli.message );
-        cli.emit( "DONE", "/PATH", "done" );
+        console::log( "->", cli.message );
+        cli.emit( "DONE", nullptr, "done" );
+    });
+
+    app.on(nullptr,nullptr,[=]( apify_t<ws_t> cli ){
+        console::log( "->", cli.message );
+        cli.emit( "FAIL", nullptr, "done" );
     });
 
     srv.onConnect([=]( ws_t cli ){
