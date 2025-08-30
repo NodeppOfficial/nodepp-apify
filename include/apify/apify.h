@@ -35,10 +35,12 @@ namespace nodepp { template< class T > class apify_t { public:
     /*.......................................................................*/
 
     string_t format( string_t method, string_t path, string_t data ) const noexcept {
-        if( path.empty() ){ path = "/"; } return string::format( "%s.%s.%s.",
-            encoder::base64::atob(method).get(),
-            encoder::base64::atob(path)  .get(),
-            encoder::base64::atob(data)  .get()
+        if( path.empty() ){ path = "/"; } 
+        
+        return regex::format( "${0}.${1}.${2}.",
+            !method.empty() ? encoder::base64::atob(method) : "",
+            !path  .empty() ? encoder::base64::atob(path)   : "",
+            !data  .empty() ? encoder::base64::atob(data)   : ""
         );
     }
 
@@ -104,11 +106,14 @@ protected:
     /*.......................................................................*/
 
     string_t format( string_t method, string_t path, string_t data ) const noexcept {
-        if( path.empty() ){ path = "/"; } return string::format( "%s.%s.%s.",
-            encoder::base64::atob(method).get(),
-            encoder::base64::atob(path)  .get(),
-            encoder::base64::atob(data)  .get()
+        if( path.empty() ){ path = "/"; }
+        
+        return regex::format( "${0}.${1}.${2}.",
+            !method.empty() ? encoder::base64::atob(method) : "",
+            !path  .empty() ? encoder::base64::atob(path)   : "",
+            !data  .empty() ? encoder::base64::atob(data)   : ""
         );
+
     }
 
     /*.......................................................................*/
