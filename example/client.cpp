@@ -8,8 +8,12 @@ void onMain(){
     auto srv = ws::client( "ws://localhost:8000" );
     auto app = apify::add<ws_t>();
 
-    app.on("DONE","/PATH",[=]( apify_t<ws_t> cli ){
-        console::log( cli.message );
+    app.on("DONE",nullptr,[=]( apify_t<ws_t> cli ){
+        console::done( cli.message );
+    });
+
+    app.on("FAIL",nullptr,[=]( apify_t<ws_t> cli ){
+        console::error( cli.message );
     });
 
     srv.onConnect([=]( ws_t cli ){
@@ -22,7 +26,11 @@ void onMain(){
             console::log("Disconnected");
         }); console::log("Connected");
 
-        apify::add(cli).emit("METHOD","/PATH","hello world!");
+        apify::add(cli).emit("SUBS"  ,nullptr    ,"hello world!");
+        apify::add(cli).emit("VALUE" ,"/100/2000","hello world!");
+        apify::add(cli).emit("METHOD","/sub/path","hello world!");
+        apify::add(cli).emit("METHOD","/PATH"    ,"hello world!");
+        apify::add(cli).emit(nullptr ,"/PATH"    ,"hello world!");
 
     });
 

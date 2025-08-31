@@ -29,16 +29,16 @@ namespace nodepp { template< class T > class apify_t { public:
     /*.......................................................................*/
 
     int emit( string_t method, string_t path, string_t data ) const noexcept { done(); return send( method, path, data ); }
-    int emit( string_t path, string_t data ) /*------------*/ const noexcept { return emit( nullptr, path, data ); }
-    int emit( string_t data ) /*---------------------------*/ const noexcept { return emit( nullptr,  "/", data ); }
+    int emit( string_t path, string_t data ) /*------------*/ const noexcept { return emit( nullptr, path   , data ); }
+    int emit( string_t data ) /*---------------------------*/ const noexcept { return emit( nullptr, nullptr, data ); }
 
     /*.......................................................................*/
 
     string_t format( string_t method, string_t path, string_t data ) const noexcept {
-        if( path.empty() ){ path = "/"; } return string::format( "%s.%s.%s.",
-            encoder::base64::atob(method).get(),
-            encoder::base64::atob(path)  .get(),
-            encoder::base64::atob(data)  .get()
+        return regex::format( "${0}.${1}.${2}.",
+            !method.empty() ? encoder::base64::atob(method) : "",
+            !path  .empty() ? encoder::base64::atob(path)   : "",
+            !data  .empty() ? encoder::base64::atob(data)   : ""
         );
     }
 
@@ -60,7 +60,9 @@ namespace nodepp { template< class T > class apify_t { public:
 
     /*.......................................................................*/
 
+    T& operator->()      const noexcept { return obj->ctx; }
     T&   get_fd()        const noexcept { return obj->ctx; }
+    T& get_socket()      const noexcept { return get_fd(); }
     void set_fd( T& fd ) const noexcept { obj->ctx  =fd; }
     void done()          const noexcept { obj->state= 1; }
 
@@ -102,10 +104,10 @@ protected:
     /*.......................................................................*/
 
     string_t format( string_t method, string_t path, string_t data ) const noexcept {
-        if( path.empty() ){ path = "/"; } return string::format( "%s.%s.%s.",
-            encoder::base64::atob(method).get(),
-            encoder::base64::atob(path)  .get(),
-            encoder::base64::atob(data)  .get()
+        return regex::format( "${0}.${1}.${2}.",
+            !method.empty() ? encoder::base64::atob(method) : "",
+            !path  .empty() ? encoder::base64::atob(path)   : "",
+            !data  .empty() ? encoder::base64::atob(data)   : ""
         );
     }
 
@@ -140,8 +142,7 @@ protected:
         auto _base = normalize( path, obj->path );
         function_t<void> next = [&](){ n = n->next; };
 
-        while ( n!=nullptr ) {
-            if( !cli.is_available() || cli.is_done() ){ break; }
+        while ( n!=nullptr && !cli.is_done() ) {
             if(( n->data.path.empty() && obj->path.empty() ) /*-----------*/
             || ( path_match( cli, _base, n->data.path ) ) /*--------------*/
             || ( n->data.path.empty() && regex::test( cli.path, "^"+_base ))
@@ -235,9 +236,9 @@ public:
             app.message = encoder::base64::btoa( message.slice( pos, tmp[2][0] ) ); pos=tmp[2][1];
 
             run( nullptr, app );
-             
+
         }
-        
+
     }
 
     /*.........................................................................*/
