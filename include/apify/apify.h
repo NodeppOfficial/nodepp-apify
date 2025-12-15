@@ -238,9 +238,11 @@ public:
     void next( T cli, string_t message ) const noexcept {
 
         auto data = regex::search_all( message, "\\." );
-        ulong pos = 0; auto app = APIFY( cli ); /*----*/
+        ulong pos = 0;
 
         while( data.size() >= 3 ){ auto tmp = data.splice( 0, 3 );
+
+            auto app = APIFY( cli ); /*----*/
 
             app.method  = encoder::base64::btoa( message.slice( pos, tmp[0][0] ) ); pos=tmp[0][1];
             app.path    = encoder::base64::btoa( message.slice( pos, tmp[1][0] ) ); pos=tmp[1][1];
