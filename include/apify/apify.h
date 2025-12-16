@@ -1,3 +1,14 @@
+/*
+ * Copyright 2023 The Nodepp Project Authors. All Rights Reserved.
+ *
+ * Licensed under the MIT (the "License").  You may not use
+ * this file except in compliance with the License.  You can obtain a copy
+ * in the file LICENSE in the source distribution or at
+ * https://github.com/NodeppOfficial/nodepp/blob/main/LICENSE
+ */
+
+/*────────────────────────────────────────────────────────────────────────────*/
+
 #ifndef NODEPP_APIFY
 #define NODEPP_APIFY
 
@@ -5,7 +16,7 @@
 
 #define MIDDL function_t<void,apify_t<T>&,function_t<void>>
 #define CALBK function_t<void,apify_t<T>&>
-#define MIMES apify_host_t
+#define ROUTR apify_host_t
 #define APIFY apify_t<T>
 
 /*────────────────────────────────────────────────────────────────────────────*/
@@ -28,17 +39,17 @@ namespace nodepp { template< class T > class apify_t { public:
 
     /*.......................................................................*/
 
-    int emit( string_t method, string_t path, string_t data ) const noexcept { done(); return send( method, path, data ); }
-    int emit( string_t path, string_t data ) /*------------*/ const noexcept { return emit( nullptr, path, data ); }
-    int emit( string_t data ) /*---------------------------*/ const noexcept { return emit( nullptr,  "/", data ); }
+    int emit( string_t method, string_t path, string_t data ) const noexcept { done(); return send(method,path,data); }
+    int emit( string_t path, string_t data ) /*------------*/ const noexcept { return emit( nullptr, path   , data ); }
+    int emit( string_t data ) /*---------------------------*/ const noexcept { return emit( nullptr, nullptr, data ); }
 
     /*.......................................................................*/
 
     string_t format( string_t method, string_t path, string_t data ) const noexcept {
-        if( path.empty() ){ path = "/"; } return string::format( "%s.%s.%s.",
-            encoder::base64::atob(method).get(),
-            encoder::base64::atob(path)  .get(),
-            encoder::base64::atob(data)  .get()
+        return regex::format( "${0}.${1}.${2}.",
+            !method.empty() ? encoder::base64::atob(method) : "",
+            !path  .empty() ? encoder::base64::atob(path)   : "",
+            !data  .empty() ? encoder::base64::atob(data)   : ""
         );
     }
 
@@ -60,7 +71,9 @@ namespace nodepp { template< class T > class apify_t { public:
 
     /*.......................................................................*/
 
-    T&   get_fd()        const noexcept { return obj->ctx; }
+    T& operator->()      const noexcept { return obj->ctx; }
+    T&     get_fd()      const noexcept { return obj->ctx; }
+    T& get_socket()      const noexcept { return get_fd(); }
     void set_fd( T& fd ) const noexcept { obj->ctx  =fd; }
     void done()          const noexcept { obj->state= 1; }
 
@@ -79,9 +92,9 @@ protected:
     struct apify_item_t {
         optional_t<MIDDL> middleware;
         optional_t<CALBK> callback;
-        optional_t<MIMES> router;
-        string_t          method;
-        string_t          path;
+        optional_t<ROUTR> router;
+        string_t /*----*/ method;
+        string_t /*----*/ path;
     };
 
     /*.......................................................................*/
@@ -102,10 +115,10 @@ protected:
     /*.......................................................................*/
 
     string_t format( string_t method, string_t path, string_t data ) const noexcept {
-        if( path.empty() ){ path = "/"; } return string::format( "%s.%s.%s.",
-            encoder::base64::atob(method).get(),
-            encoder::base64::atob(path)  .get(),
-            encoder::base64::atob(data)  .get()
+        return regex::format( "${0}.${1}.${2}.",
+            !method.empty() ? encoder::base64::atob(method) : "",
+            !path  .empty() ? encoder::base64::atob(path)   : "",
+            !data  .empty() ? encoder::base64::atob(data)   : ""
         );
     }
 
@@ -138,10 +151,9 @@ protected:
 
         auto n     = obj->list.first();
         auto _base = normalize( path, obj->path );
-        function_t<void> next = [&](){ n = n->next; };
+        function_t<void> next ( [&](){ n = n->next; } );
 
-        while ( n!=nullptr ) {
-            if( !cli.is_available() || cli.is_done() ){ break; }
+        while ( n!=nullptr && !cli.is_done() ) {
             if(( n->data.path.empty() && obj->path.empty() ) /*-----------*/
             || ( path_match( cli, _base, n->data.path ) ) /*--------------*/
             || ( n->data.path.empty() && regex::test( cli.path, "^"+_base ))
@@ -199,7 +211,7 @@ public:
         cb.set_path( normalize( obj->path, _path ) );
         item.method     = nullptr;
         item.path       = nullptr;
-        item.router     = optional_t<MIMES>(cb);
+        item.router     = optional_t<ROUTR>(cb);
         obj->list.push( item ); return (*this);
     }
 
@@ -225,19 +237,27 @@ public:
 
     void next( T cli, string_t message ) const noexcept {
 
-        auto data = regex::search_all( message, "\\." );
-        ulong pos = 0; auto app = APIFY( cli ); /*----*/
+        while( !message.empty() ){
+            
+            queue_t<ptr_t<ulong>> idx; ulong pos = 0;
 
-        while( data.size() >= 3 ){ auto tmp = data.splice( 0, 3 );
+            for( ulong x=0; x++<message.size(); ){
+            if ( message[x] != '.' ){ continue; }
+                 idx.push(ptr_t<ulong>({x,x+1})); pos=x+1;
+            if ( idx.size()==3 )/**/{ break   ; }}
+            if ( idx.size()< 3 )/**/{ break   ; }
 
-            app.method  = encoder::base64::btoa( message.slice( pos, tmp[0][0] ) ); pos=tmp[0][1];
-            app.path    = encoder::base64::btoa( message.slice( pos, tmp[1][0] ) ); pos=tmp[1][1];
-            app.message = encoder::base64::btoa( message.slice( pos, tmp[2][0] ) ); pos=tmp[2][1];
+            auto msg = message.splice( 0, pos ); pos=0; 
+            auto tmp = idx.data(); auto app=APIFY(cli); 
+
+            app.method  = encoder::base64::btoa( msg.slice( pos, tmp[0][0] ) ); pos=tmp[0][1];
+            app.path    = encoder::base64::btoa( msg.slice( pos, tmp[1][0] ) ); pos=tmp[1][1];
+            app.message = encoder::base64::btoa( msg.slice( pos, tmp[2][0] ) ); pos=tmp[2][1];
 
             run( nullptr, app );
-             
+    
         }
-        
+
     }
 
     /*.........................................................................*/
@@ -256,6 +276,6 @@ namespace nodepp { namespace apify {
 
 #undef MIDDL
 #undef CALBK
-#undef MIMES
+#undef ROUTR
 #undef APIFY
 #endif
