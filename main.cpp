@@ -11,11 +11,11 @@ void server(){
     auto srv = tcp::server();
     auto app = apify::add<socket_t>();
 
-    app.on( "GET", nullptr, [=]( apify_t<socket_t> cli ){
+    app.on( "GET", "/test/:id", [=]( apify_t<socket_t> cli ){
         console::log( "->", cli.message );
-        cli.emit( "DONE", nullptr, "AAA" );
-        cli.emit( "DONE", nullptr, "AAA" );
-        cli.emit( "DONE", nullptr, "AAA" );
+        cli.emit( "DONE", nullptr, regex::format( "AAA ${0}", cli.params["id"] ) );
+        cli.emit( "DONE", nullptr, regex::format( "AAA ${0}", cli.params["id"] ) );
+        cli.emit( "DONE", nullptr, regex::format( "AAA ${0}", cli.params["id"] ) );
     });
 
     app.on( [=]( apify_t<socket_t> cli ){
@@ -76,9 +76,9 @@ void client(){
             console::log("closed");
         });
 
-        apify::add(cli).send( "GET", nullptr, "hello world!" );
-        apify::add(cli).send( "GET", nullptr, "hello world!" );
-        apify::add(cli).send( "GET", nullptr, "hello world!" );
+        apify::add(cli).send( "GET", "/test/id1", "hello world!" );
+        apify::add(cli).send( "GET", "/test/id2", "hello world!" );
+        apify::add(cli).send( "GET", "/test/id3", "hello world!" );
         stream::pipe( cli );
 
     });
